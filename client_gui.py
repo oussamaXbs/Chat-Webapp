@@ -74,76 +74,169 @@ client = None
 HOST_ADDR = "127.0.0.1"
 HOST_PORT = 55555
 
+import tkinter as tk
+from tkinter import messagebox
+import socket
+import threading
+
 def connect_to_server(name):
     global client, HOST_PORT, HOST_ADDR
+    if not name:
+        messagebox.showerror(title="ERROR", message="Username cannot be empty.")
+        return
+
     try:
+        # Initialize socket and connect to server
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect((HOST_ADDR, HOST_PORT))
-        client.send(name.encode()) # ya3ti el name lel server ba3d ma yconnecti
+        client.send(name.encode())  # Send the username to the server
+
+        # Update UI states after successful connection
         entName.config(state=tk.DISABLED)
         btnConnect.config(state=tk.DISABLED)
         btntext.config(state=tk.NORMAL)
         btnfileSend.config(state=tk.NORMAL)
         btnfileBrowse.config(state=tk.NORMAL)
         tkMessage.config(state=tk.NORMAL)
-        threading._start_new_thread(receive_message_from_server, (client, "m"))
+
+        # Start a new thread to receive messages from the server
+        threading.Thread(target=receive_message_from_server, args=(client, "m"), daemon=True).start()
+    
     except Exception as e:
-        tk.messagebox.showerror(title="ERROR!!!", message="Cannot connect to host: " + HOST_ADDR + " on port: " + str(HOST_PORT) + " Server may be Unavailable. Try again later")
+        messagebox.showerror(
+            title="ERROR", 
+            message=f"Cannot connect to host: {HOST_ADDR} on port: {HOST_PORT}. Server may be unavailable. Try again later."
+        )
 
 def receive_message_from_server(sck, m):
     while True:
-        from_server = sck.recv(1024).decode() 
-        if not from_server: break
-        # display message from server on the chat window
-        texts = tkDisplay.get("1.0", tk.END).strip()
-        tkDisplay.config(state=tk.NORMAL)
-        if len(texts) < 1:
-            tkDisplay.insert(tk.END, from_server)
-        else:
-            tkDisplay.insert(tk.END, "\n\n"+ from_server)
-        tkDisplay.config(state=tk.DISABLED)
-        tkDisplay.see(tk.END)
-    sck.close()
-    window.destroy()
+        try:
+            from_server = sck.recv(1024).decode()
+            if not from_server:
+                break
 
+            # Display message from server in chat window
+            texts = tkDisplay.get("1.0", tk.END).strip()
+            tkDisplay.config(state=tk.NORMAL)
+
+            # Display received message
+            if len(texts) < 1:
+                tkDisplay.insert(tk.END, from_server)
+            else:
+                tkDisplay.insert(tk.END, "\n\n" + from_server)
+
+            tkDisplay.config(state=tk.DISABLED)
+            tkDisplay.see(tk.END)
+
+        except Exception as e:
+            print(f"Error receiving message: {e}")
+            break
+
+    # Close socket and update UI on disconnect
+    sck.close()
+    messagebox.showinfo("Disconnected", "You have been disconnected from the server.")
+    window.destroy()
+    
 def getChatMessage(msg):
-    msg = msg.replace('\n', '')
-    texts = tkDisplay.get("1.0", tk.END).strip() 
+    msg = msg.replace('\n', '').strip()  # Remove any newline and leading/trailing whitespace
+
+    if not msg:
+        return  # Avoid sending empty messages
+
+    # Get current text in the display box and prepare to update it
+    texts = tkDisplay.get("1.0", tk.END).strip()
     tkDisplay.config(state=tk.NORMAL)
+
+    # Insert the message in the display box with custom tag
     if len(texts) < 1:
-        tkDisplay.insert(tk.END, "You->" + msg, "tag_your_message") # no line
+        tkDisplay.insert(tk.END, "You->" + msg, "tag_your_message")
     else:
         tkDisplay.insert(tk.END, "\n\n" + "You->" + msg, "tag_your_message")
+
+    # Lock the display box and scroll to the end
     tkDisplay.config(state=tk.DISABLED)
-    send_mssage_to_server(msg)
     tkDisplay.see(tk.END)
-    tkMessage.delete('1.0', tk.END)
+
+    # Attempt to send the message and clear the input if successful
+    try:
+        send_message_to_server(msg)
+        tkMessage.delete('1.0', tk.END)  # Clear input only if sent successfully
+    except Exception as e:
+        print(f"Failed to send message: {e}")
+        messagebox.showerror("Error", "Message failed to send.")
 
 
-def send_mssage_to_server(msg):
-    client_msg = str(msg)
-    client.send(client_msg.encode())
-    if msg == "exit":
-        client.send("disconnecting".encode())
-        window.after(100, lambda: client.close())
-        window.after(1000, lambda: window.destroy())
-    print("Sending message")
+def send_message_to_server(msg):
+    global client  # Ensures we modify the global client variable if needed
 
+    try:
+        # Convert the message to string and encode it
+        client_msg = str(msg)
+        client.send(client_msg.encode())
 
+        # If the message is "exit," handle disconnection
+        if msg == "exit":
+            client.send("disconnecting".encode())
+            window.after(100, lambda: client.close())  # Slight delay to ensure message reaches the server
+            window.after(500, lambda: window.destroy())  # Close the GUI shortly after disconnecting
+
+        print("Sending message:", msg)  # Optional: Print message for debugging
+    except Exception as e:
+        print("Error sending message:", e)
+        messagebox.showerror("Error", "Failed to send message. Please check your connection.")
+
+import os
+from tkinter import filedialog
 
 def browseFile():
-    filename = filedialog.askopenfilename(initialdir="/",title="Select a file",filetypes = (("Text files","*.txt*"),("all files","*.*")))
-    if filename!="":
-        fileLocation.configure(text="File Opened: "+ filename)
+    try:
+        filename = filedialog.askopenfilename(
+            initialdir="/",
+            title="Select a file",
+            filetypes=(("Text files", "*.txt*"), ("All files", "*.*"))
+        )
+        
+        if filename:
+            # Display only the file name, not the full path
+            fileLocation.configure(text="File Opened: " + os.path.basename(filename))
+            
+            # Optionally, return the filename for further processing
+            return filename
+        else:
+            fileLocation.configure(text="No file selected")  # Message if no file is chosen
+    except Exception as e:
+        fileLocation.configure(text="Error opening file")
+        print("Error:", e)
 
-"""
-def sendFile_to_server():
-    file size= os.path.getsize(filename)
-    client.send(str(filesize).encode())
-    print("sending file")
-    data=file.read()
-    client.sendall(data)
-"""    
+def on_closing():
+    if client:
+        print("Sending exit message to server.")
+        client.send("exit".encode())  # Send exit message to server
+        client.close()  # Close the socket connection
+    window.destroy()  # Destroy the window
+
+# Bind the window close event to the on_closing function
+window.protocol("WM_DELETE_WINDOW", on_closing)
+
+
+def sendFile_to_server(filename):
+    try:
+        # Check if file exists and get its size
+        file_size = os.path.getsize(filename)
+        
+        # Send file size to server
+        client.send(str(file_size).encode())
+        print("Sending file...")
+
+        # Open file in binary mode and send its content
+        with open(filename, 'rb') as file:
+            data = file.read()
+            client.sendall(data)
+        
+        print("File sent successfully")
+        
+    except Exception as e:
+        print("Error sending file:", e)
     
     
 """

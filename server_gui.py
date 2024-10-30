@@ -48,82 +48,131 @@ clients_names = []
 # Start server function
 def start_server():
     global server, HOST_ADDR, HOST_PORT
-    btnStart.config(state=tk.DISABLED,)
-    btnStop.config(state=tk.NORMAL)
+    try:
+        # Disable the Start button and enable the Stop button
+        btnStart.config(state=tk.DISABLED)
+        btnStop.config(state=tk.NORMAL)
 
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print(socket.AF_INET)
-    print(socket.SOCK_STREAM)
+        # Set up and start the server socket
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind((HOST_ADDR, HOST_PORT))
+        server.listen(5)
+        print("Server started on:", HOST_ADDR, "Port:", HOST_PORT)
 
-    server.bind((HOST_ADDR, HOST_PORT))
-    server.listen(5)
+        # Start a new thread to accept clients
+        threading.Thread(target=accept_clients, args=(server,)).start()
 
-    threading._start_new_thread(accept_clients, (server, " "))
-
-    lblHost["text"] = "Host: " + HOST_ADDR
-    lblPort["text"] = "Port: " + str(HOST_PORT)
-
+        # Display the server address and port
+        lblHost["text"] = "Host: " + HOST_ADDR
+        lblPort["text"] = "Port: " + str(HOST_PORT)
+        
+    except Exception as e:
+        print("Error starting server:", e)
 
 # Stop server function
 def stop_server():
     global server
-    btnStart.config(state=tk.NORMAL)
-    btnStop.config(state=tk.DISABLED)    
-    window.destroy()
+    try:
+        # Disable the Stop button and enable the Start button
+        btnStart.config(state=tk.NORMAL)
+        btnStop.config(state=tk.DISABLED)    
+
+        # Close the server socket if it's open
+        if server:
+            server.close()
+            print("Server stopped.")
+
+        # Optional: Join any threads or perform cleanup here if needed
+        # For example, if you have threads accepting clients, you might want to signal them to stop.
+        
+    except Exception as e:
+        print("Error stopping the server:", e)
 
 
 # tzid clients lel liste clients    
-def accept_clients(the_server, y):
-    while True:
-        client, addr = the_server.accept()
-        clients.append(client)
-        threading._start_new_thread(send_receive_client_message, (client, addr))
+def accept_clients(the_server):
+    try:
+        while True:
+            # Accept a new client connection
+            client, addr = the_server.accept()
+            print(f"Connection accepted from {addr}")
+            clients.append(client)
+
+            # Start a new thread to handle the client's messages
+            threading.Thread(target=send_receive_client_message, args=(client, addr)).start()
+    except Exception as e:
+        print("Error accepting clients:", e)
+
 
 
 #receive message from current client AND
 # Send that message to other clients
+
+
+
+
 def send_receive_client_message(client_connection, client_ip_addr):
-    global server, client_name, clients, clients_addr
-    client_msg = ""
+    global server, clients, clients_names
 
-    # send welcome message to client
-    client_name  = client_connection.recv(1024).decode()
-    welcome_msg = "Welcome " + client_name + "!. Use 'exit' to quit conversation"
-    client_connection.send(welcome_msg.encode())
-    clients_names.append(client_name)
-    update_client_names_display(clients_names)  #mise a jour lel client names
-    for c in clients:
-        if c!= client_connection:
-            add_msg=f"{client_name} joined the chat!!"
-            c.send(add_msg.encode())
-    while True:
-        data = client_connection.recv(1024).decode()
-        if not data: break
-        if data == "exit": break
-        client_msg = data
-        idx = get_client_index(clients, client_connection)
-        sending_client_name = clients_names[idx]
+    try:
+        # Receive the client's name
+        client_name = client_connection.recv(1024).decode()
+        welcome_msg = f"Welcome {client_name}! Use 'exit' to quit the conversation."
+        client_connection.send(welcome_msg.encode())
 
+        # Add the new client to the lists
+        clients.append(client_connection)
+        clients_names.append(client_name)
+        update_client_names_display(clients_names)  # Update the display for all clients
+
+        # Notify other clients about the new connection
         for c in clients:
             if c != client_connection:
-                server_msg = str(sending_client_name + "->" + client_msg)
-                c.send(server_msg.encode())
+                add_msg = f"{client_name} joined the chat!!"
+                c.send(add_msg.encode())
 
-    # find the client index then remove from both lists(client name list and connection list)
-    idx = get_client_index(clients, client_connection)
-    client_name  = clients_names[idx]
-    del clients_names[idx]
-    del clients[idx]
-    server_msg = "BYE "+client_name+"!"
-    for c in clients:
-        if c!= client_connection:
-            add_msg=f"{client_name} left the chat!!"
-            c.send(add_msg.encode())
-    client_connection.send(server_msg.encode())
-    client_connection.close()
+        while True:
+            data = client_connection.recv(1024).decode()
+            if not data:  # Client disconnected unexpectedly
+                print(f"{client_name} disconnected unexpectedly.")
+                break
 
-    update_client_names_display(clients_names)  # mise a jour lel client names display
+            if data == "exit":  # Client sent exit command
+                print(f"{client_name} has exited the chat.")
+                break
+            
+            # Send received message to all other clients
+            idx = clients.index(client_connection)  # Get index of the current client
+            for c in clients:
+                if c != client_connection:
+                    server_msg = f"{client_name} -> {data}"
+                    c.send(server_msg.encode())
 
+    except Exception as e:
+        print(f"Error while handling client {client_name}: {e}")
+
+    finally:
+        # Cleanup after disconnection
+        try:
+            idx = clients.index(client_connection)
+            if idx != -1:
+                client_name = clients_names[idx]
+                del clients_names[idx]  # Remove the client's name
+                del clients[idx]  # Remove the client's socket connection
+                
+                # Notify remaining clients
+                for c in clients:
+                    if c != client_connection:
+                        add_msg = f"{client_name} left the chat!!"
+                        c.send(add_msg.encode())
+                
+                update_client_names_display(clients_names)  # Update the client list display
+
+            client_connection.close()  # Close the client connection
+
+        except ValueError:
+            # This error can occur if the client was not found in the list
+            print(f"Client connection not found during cleanup for {client_name}.")
 
 
 
@@ -136,7 +185,6 @@ def get_client_index(client_list, curr_client):
         idx = idx + 1
 
     return idx
-
 
 # mise a jour lel client names display wa9t client ya3ml connect OR
 # wa9t client ya3ml disconnect 
