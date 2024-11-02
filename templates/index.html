@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        /* Background gradient with dark neon effect */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        /* Particle effect layer */
+        #particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            background: transparent;
+        }
+
+        /* Starry particles and floating lines animation */
+        @keyframes particles {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100px, -200px, 0); }
+        }
+
+        #particles::before, #particles::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15), rgba(0,0,0,0));
+            background-size: 10px 10px;
+            animation: particles 60s linear infinite;
+        }
+        #particles::after {
+            animation-duration: 120s;
+            opacity: 0.5;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #0ef;
+            text-shadow: 0 0 20px #0ef, 0 0 30px #0ff;
+            animation: glow 2s ease-in-out infinite alternate;
+            z-index: 2;
+            margin-top: 0;
+        }
+
+        /* Chat box with neon border */
+        #messages {
+            border: 2px solid rgba(14, 239, 255, 0.7);
+            padding: 15px;
+            width: 90%;
+            max-width: 600px;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 20px rgba(14, 239, 255, 0.5);
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            position: relative;
+            z-index: 2;
+            color: #0ef;
+        }
+
+        /* Regular message styling without animation */
+        #messages div {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(14, 239, 255, 0.5);
+            color: #0ef;
+            font-size: 1em;
+        }
+
+        /* Input box styling */
+        #input {
+            width: 80%;
+            max-width: 500px;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 20px;
+            border: 1px solid rgba(14, 239, 255, 0.7);
+            outline: none;
+            background: rgba(0, 0, 0, 0.8);
+            color: #0ef;
+            box-shadow: 0 0 15px rgba(14, 239, 255, 0.5);
+            font-size: 1em;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            z-index: 2;
+        }
+        #input:focus {
+            box-shadow: 0 0 25px rgba(14, 239, 255, 1);
+            transform: scale(1.05);
+        }
+
+        /* Button with animated border and hover effect */
+        button {
+            background: rgba(14, 239, 255, 0.2);
+            color: #0ef;
+            border: 2px solid rgba(14, 239, 255, 0.5);
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 15px rgba(14, 239, 255, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(14, 239, 255, 0.8);
+        }
+
+        /* Header glow animation */
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #0ef, 0 0 30px #0ff; }
+            to { text-shadow: 0 0 30px #0ff, 0 0 40px #0ff; }
+        }
+    </style>
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('input');
+            const message = input.value;
+
+            if (message) {
+                await fetch('/send_message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `message=${encodeURIComponent(message)}`,
+                });
+                input.value = '';  // Clear input
+                loadMessages();     // Reload messages
+            }
+        }
+
+        async function loadMessages() {
+            const response = await fetch('/get_messages');
+            const messages = await response.json();
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';  // Clear current messages
+
+            messages.forEach(msg => {
+                const item = document.createElement('div');
+                item.textContent = msg;
+                messagesDiv.appendChild(item);
+            });
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Scroll to bottom
+        }
+
+        async function resetChat() {
+            await fetch('/reset_chat', {
+                method: 'POST',
+            });
+            loadMessages();  // Reload messages after reset
+        }
+
+        // Load messages every second to update chat in real time
+        setInterval(loadMessages, 1000);
+    </script>
+</head>
+<body>
+    <div id="particles"></div> <!-- Layer for particle background animation -->
+    <h1>Chat Room</h1>
+    <div id="messages"></div>
+    <input id="input" type="text" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()" />
+    <button onclick="resetChat()">Reset Chat</button>
+</body>
+</html>
