@@ -50,15 +50,55 @@
             transform: scale(1.1);
             box-shadow: 0 0 30px rgba(14, 239, 255, 0.8);
         }
+
+        .message {
+            color: red;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
     <h1>Create an Account</h1>
-    <form action="/signup" method="POST">
-        <input id="usernameInput" name="username" type="text" placeholder="Enter your username" required />
-        <input id="passwordInput" name="password" type="password" placeholder="Enter your password" required />
-        <button type="submit">Sign Up</button>
-    </form>
-    <p>Already have an account? <a href="/">Login here</a></p>
+
+    <!-- Error Message if invalid input -->
+    <div id="error-message" class="message" style="display: none;"></div>
+    
+    <input id="usernameInput" type="text" placeholder="Enter your username" required />
+    <input id="passwordInput" type="password" placeholder="Enter your password" required />
+    <button onclick="signUp()">Sign Up</button>
+
+    <script>
+        function signUp() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+
+            // Clear any previous error messages
+            const errorMessageDiv = document.getElementById('error-message');
+            errorMessageDiv.style.display = 'none';
+
+            if (username && password) {
+                fetch('/signup', {  // Send credentials to the server for registration
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/';  // Redirect to login page
+                    } else {
+                        errorMessageDiv.textContent = 'Username already exists or registration failed.';
+                        errorMessageDiv.style.display = 'block';
+                    }
+                });
+            } else {
+                errorMessageDiv.textContent = 'Please enter both username and password!';
+                errorMessageDiv.style.display = 'block';
+            }
+        }
+    </script>
 </body>
 </html>
