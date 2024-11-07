@@ -140,51 +140,40 @@
             to { text-shadow: 0 0 30px #0ff, 0 0 40px #0ff; }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <!-- Include Socket.IO library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
     <script>
         const socket = io();
 
-        // Display new message
-        socket.on('new_message', function(data) {
-            const messagesDiv = document.getElementById('messages');
-            const item = document.createElement('div');
-            item.textContent = data.message;
-            messagesDiv.appendChild(item);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Scroll to bottom
-        });
+        // Function to send a message
+        function sendMessage() {
+            const input = document.getElementById('input');
+            const message = input.value.trim();
 
-        // Display all messages on page load
-        socket.on('all_messages', function(messages) {
+            if (message) {
+                socket.emit('send_message', { message: message });
+                input.value = '';  // Clear input field
+            }
+        }
+
+        // Listen for new messages from the server
+        socket.on('receive_message', (data) => {
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML = '';  // Clear current messages
-            messages.forEach(msg => {
+
+            data.messages.forEach(msg => {
                 const item = document.createElement('div');
                 item.textContent = msg;
                 messagesDiv.appendChild(item);
             });
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Scroll to bottom
         });
 
-        // Clear chat display on reset
-        socket.on('chat_reset', function() {
-            document.getElementById('messages').innerHTML = '';
-        });
-
-        function sendMessage() {
-            const input = document.getElementById('input');
-            const message = input.value;
-            if (message) {
-                socket.emit('send_message', { message: message });
-                input.value = '';  // Clear input
-            }
-        }
-
+        // Function to reset the chat
         function resetChat() {
             socket.emit('reset_chat');
         }
-
-        // Request all messages on initial load
-        socket.emit('get_messages');
     </script>
 </head>
 <body>
@@ -192,6 +181,7 @@
     <h1>Chat Room</h1>
     <div id="messages"></div>
     <input id="input" type="text" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()" />
+    <button onclick="sendMessage()">Send Message</button> <!--Send Message Button -->
     <button onclick="resetChat()">Reset Chat</button>
 </body>
 </html>
