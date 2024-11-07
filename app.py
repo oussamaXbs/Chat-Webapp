@@ -12,27 +12,28 @@ socketio = SocketIO(app)
 users = {}
 
 @app.route('/')
-def login():
-    return render_template('SignUpPage.html')
-
-@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if request.method == 'POST':
-        data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
-
-        if username in users:
-            return jsonify({'success': False, 'message': 'Username already exists'})
-        
-        # Store the new user's data (in a real app, hash the password before storing it)
-        users[username] = password
-        return jsonify({'success': True})
-    
+    # Open the signup page first when the user visits the root
     return render_template('SignUpPage.html')
+
+@app.route('/signup', methods=['POST'])
+def signup_user():
+    # Handle the signup logic (POST request)
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    # Check if the username already exists
+    if username in users:
+        return jsonify({'success': False, 'message': 'Username already exists'})
+
+    # Store the new user's data (in a real app, hash the password before storing it)
+    users[username] = password
+    return jsonify({'success': True})
 
 @app.route('/login', methods=['POST'])
 def user_login():
+    # Handle login logic (POST request)
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -45,9 +46,10 @@ def user_login():
 
 @app.route('/chat')
 def chat():
+    # Ensure the user is logged in before showing the chat page
     if 'username' in session:
         return render_template('ChatPage.html', username=session['username'])
-    return redirect(url_for('login'))
+    return redirect(url_for('signup'))  # Redirect to the signup page if not logged in
 
 # SocketIO event for real-time messaging
 @socketio.on('message')
