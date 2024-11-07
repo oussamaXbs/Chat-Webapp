@@ -1,29 +1,32 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key'
+socketio = SocketIO(app)
 
-# Store messages in memory for simplicity
+# Store messages in memory
 messages = []
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/send_message', methods=['POST'])
-def send_message():
-    msg = request.form['message']
+@socketio.on('send_message')
+def handle_send_message(data):
+    msg = data['message']
     messages.append(msg)  # Add message to the list
-    return jsonify({'status': 'success'})
+    emit('new_message', {'message': msg}, broadcast=True)  # Broadcast message to all clients
 
-@app.route('/get_messages', methods=['GET'])
-def get_messages():
-    return jsonify(messages)
+@socketio.on('get_messages')
+def handle_get_messages():
+    emit('all_messages', messages)  # Send all messages to the client
 
-@app.route('/reset_chat', methods=['POST'])
-def reset_chat():
+@socketio.on('reset_chat')
+def handle_reset_chat():
     global messages
     messages = []  # Clear the chat history
-    return jsonify({'status': 'success'})
+    emit('chat_reset', broadcast=True)  # Notify all clients of reset
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)
