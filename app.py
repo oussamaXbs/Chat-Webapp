@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from flask_socketio import SocketIO, send, join_room, leave_room
 import os
-import json
 
 # Initialize the Flask app and SocketIO
 app = Flask(__name__)

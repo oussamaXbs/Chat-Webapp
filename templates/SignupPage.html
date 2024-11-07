@@ -63,7 +63,7 @@
 
     <input id="usernameInput" type="text" placeholder="Enter your username" required />
     <input id="passwordInput" type="password" placeholder="Enter your password" required />
-    <button onclick="signUp()">Sign Up</button>
+    <button type="button" onclick="signUp()">Sign Up</button>
 
     <div id="error-message" class="message" style="display: none;"></div>
 
@@ -86,7 +86,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.href = 'LoginPage.html';  // Redirect to login page after successful signup
+                        window.location.href = '/login';  // Redirect to login page after successful signup
                     } else {
                         errorMessageDiv.textContent = data.message;
                         errorMessageDiv.style.display = 'block';
