@@ -140,46 +140,51 @@
             to { text-shadow: 0 0 30px #0ff, 0 0 40px #0ff; }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
     <script>
-        async function sendMessage() {
-            const input = document.getElementById('input');
-            const message = input.value;
+        const socket = io();
 
-            if (message) {
-                await fetch('/send_message', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `message=${encodeURIComponent(message)}`,
-                });
-                input.value = '';  // Clear input
-                loadMessages();     // Reload messages
-            }
-        }
+        // Display new message
+        socket.on('new_message', function(data) {
+            const messagesDiv = document.getElementById('messages');
+            const item = document.createElement('div');
+            item.textContent = data.message;
+            messagesDiv.appendChild(item);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Scroll to bottom
+        });
 
-        async function loadMessages() {
-            const response = await fetch('/get_messages');
-            const messages = await response.json();
+        // Display all messages on page load
+        socket.on('all_messages', function(messages) {
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML = '';  // Clear current messages
-
             messages.forEach(msg => {
                 const item = document.createElement('div');
                 item.textContent = msg;
                 messagesDiv.appendChild(item);
             });
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
 
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Scroll to bottom
+        // Clear chat display on reset
+        socket.on('chat_reset', function() {
+            document.getElementById('messages').innerHTML = '';
+        });
+
+        function sendMessage() {
+            const input = document.getElementById('input');
+            const message = input.value;
+            if (message) {
+                socket.emit('send_message', { message: message });
+                input.value = '';  // Clear input
+            }
         }
 
-        async function resetChat() {
-            await fetch('/reset_chat', {
-                method: 'POST',
-            });
-            loadMessages();  // Reload messages after reset
+        function resetChat() {
+            socket.emit('reset_chat');
         }
 
-        // Load messages every second to update chat in real time
-        setInterval(loadMessages, 1000);
+        // Request all messages on initial load
+        socket.emit('get_messages');
     </script>
 </head>
 <body>
