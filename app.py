@@ -14,7 +14,7 @@ users = {}
 @app.route('/')
 def signup():
     # Open the signup page first when the user visits the root
-    return render_template('SignUpPage.html')
+    return render_template('SignupPage.html')
 
 @app.route('/signup', methods=['POST'])
 def signup_user():
