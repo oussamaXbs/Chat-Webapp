@@ -59,26 +59,24 @@
     </style>
 </head>
 <body>
-    <h1>Create an Account</h1>
+    <h1>Sign Up</h1>
 
-    <!-- Error Message if invalid input -->
-    <div id="error-message" class="message" style="display: none;"></div>
-    
     <input id="usernameInput" type="text" placeholder="Enter your username" required />
     <input id="passwordInput" type="password" placeholder="Enter your password" required />
     <button onclick="signUp()">Sign Up</button>
+
+    <div id="error-message" class="message" style="display: none;"></div>
 
     <script>
         function signUp() {
             const username = document.getElementById('usernameInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
 
-            // Clear any previous error messages
             const errorMessageDiv = document.getElementById('error-message');
             errorMessageDiv.style.display = 'none';
 
             if (username && password) {
-                fetch('/signup', {  // Send credentials to the server for registration
+                fetch('/signup', {  // Send the signup data to the server
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -88,9 +86,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.href = '/';  // Redirect to login page
+                        window.location.href = 'LoginPage.html';  // Redirect to login page after successful signup
                     } else {
-                        errorMessageDiv.textContent = 'Username already exists or registration failed.';
+                        errorMessageDiv.textContent = data.message;
                         errorMessageDiv.style.display = 'block';
                     }
                 });
