@@ -13,11 +13,11 @@ users = {}
 @app.route('/')
 def signup():
     # Open the signup page first when the user visits the root
-    return render_template('SignupPage.html')  # Corrected the filename
+    return render_template('SignupPage.html')
 
 @app.route('/signup', methods=['POST'])  # Ensure this is POST
 def signup_user():
-    data = request.get_json()  # Expecting JSON data
+    data = request.get_json()  # Expecting JSON data from the frontend
     username = data.get('username')
     password = data.get('password')
 
@@ -26,7 +26,6 @@ def signup_user():
 
     users[username] = password
     return jsonify({'success': True})
-
 
 @app.route('/login', methods=['POST'])
 def user_login():
