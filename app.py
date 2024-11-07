@@ -1,23 +1,38 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from flask_socketio import SocketIO, send, join_room, leave_room
 import os
+import json
 
 # Initialize the Flask app and SocketIO
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 socketio = SocketIO(app)
 
-# A simple in-memory database (dictionary) to store user credentials
-users = {}
+# File path for user data
+USER_DATA_FILE = 'users.json'
+
+# A function to load user data from the JSON file
+def load_users():
+    if os.path.exists(USER_DATA_FILE):
+        with open(USER_DATA_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+# A function to save user data to the JSON file
+def save_users(users):
+    with open(USER_DATA_FILE, 'w') as f:
+        json.dump(users, f)
+
+# Load users when the app starts
+users = load_users()
 
 @app.route('/')
 def signup():
-    # Open the signup page first when the user visits the root
-    return render_template('SignupPage.html')
+    return render_template('SignupPage.html')  # Signup page
 
 @app.route('/signup', methods=['POST'])  # Ensure this is POST
 def signup_user():
-    data = request.get_json()  # Expecting JSON data from the frontend
+    data = request.get_json()  # Expecting JSON data
     username = data.get('username')
     password = data.get('password')
 
@@ -25,11 +40,11 @@ def signup_user():
         return jsonify({'success': False, 'message': 'Username already exists'})
 
     users[username] = password
+    save_users(users)  # Save the updated users data
     return jsonify({'success': True})
 
 @app.route('/login', methods=['POST'])
 def user_login():
-    # Handle login logic (POST request)
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -42,10 +57,9 @@ def user_login():
 
 @app.route('/chat')
 def chat():
-    # Ensure the user is logged in before showing the chat page
     if 'username' in session:
         return render_template('ChatPage.html', username=session['username'])
-    return redirect(url_for('signup'))  # Redirect to the signup page if not logged in
+    return redirect(url_for('signup'))
 
 # SocketIO event for real-time messaging
 @socketio.on('message')
