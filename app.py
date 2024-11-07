@@ -13,7 +13,7 @@ users = {}
 
 @app.route('/')
 def login():
-    return render_template('LoginPage.html')
+    return render_template('SignUpPage.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
