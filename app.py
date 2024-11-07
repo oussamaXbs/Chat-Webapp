@@ -16,7 +16,7 @@ def index():
 def handle_send_message(data):
     msg = data['message']
     messages.append(msg)  # Add message to the list
-    emit('receive_message', {'message': msg}, broadcast=True)  # Broadcast message to all clients
+    emit('receive_message', {'messages': messages}, broadcast=True)  # Broadcast all messages to all clients
 
 @socketio.on('get_messages')
 def handle_get_messages():
