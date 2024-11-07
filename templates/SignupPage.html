@@ -77,21 +77,22 @@
 
             if (username && password) {
                 fetch('/signup', {  // Send the signup data to the server
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username: username, password: password })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.href = '/login';  // Redirect to login page after successful signup
-                    } else {
-                        errorMessageDiv.textContent = data.message;
-                        errorMessageDiv.style.display = 'block';
-                    }
-                });
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username: username, password: password })
+})
+.then(response => response.json())
+.then(data => {
+    if (data.success) {
+        window.location.href = '/login';  // Redirect to login page after successful signup
+    } else {
+        errorMessageDiv.textContent = data.message;
+        errorMessageDiv.style.display = 'block';
+    }
+});
+
             } else {
                 errorMessageDiv.textContent = 'Please enter both username and password!';
                 errorMessageDiv.style.display = 'block';

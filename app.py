@@ -15,20 +15,18 @@ def signup():
     # Open the signup page first when the user visits the root
     return render_template('SignupPage.html')  # Corrected the filename
 
-@app.route('/signup', methods=['POST'])
+@app.route('/signup', methods=['POST'])  # Ensure this is POST
 def signup_user():
-    # Handle the signup logic (POST request)
-    data = request.get_json()
+    data = request.get_json()  # Expecting JSON data
     username = data.get('username')
     password = data.get('password')
 
-    # Check if the username already exists
     if username in users:
         return jsonify({'success': False, 'message': 'Username already exists'})
 
-    # Store the new user's data (in a real app, hash the password before storing it)
     users[username] = password
     return jsonify({'success': True})
+
 
 @app.route('/login', methods=['POST'])
 def user_login():
