@@ -10,7 +10,7 @@ messages = []
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('username.html')
 
 @socketio.on('send_message')
 def handle_send_message(data):
