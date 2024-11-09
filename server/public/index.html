@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"
+      integrity="sha512-Xm9qbB6Pu06k3PUwPj785dyTl6oHxgsv9nHp7ej7nCpAqGZT3OZpsELuCYX05DdonFpTlBpXMOxjavIAIUwr0w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <form class="form-join">
+          <input
+            type="text"
+            id="name"
+            maxlength="8"
+            placeholder="Your name"
+            size="5"
+            required
+          />
+          <select name="Chat Room" id="room">
+            <option value="" disabled selected>Room</option>
+            <option value="Red">Red</option>
+            <option value="Green">Green</option>
+            <option value="Blue">Blue</option>
+          </select>
+          <button id="join" type="submit">Join</button>
+        </form>
+      </header>
+      <div class="app"><ul class="chat-display"></ul></div>
+      <div class="info">
+        <p class="user-list"></p>
+        <p class="room-list"></p>
+        <p class="activity"></p>
+      </div>
+      <div class="send">
+        <form class="form-msg">
+          <input type="text" id="message" placeholder="Your message" required />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
