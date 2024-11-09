@@ -1,46 +1,47 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from flask_socketio import SocketIO, send, join_room, leave_room
+from flask_sqlalchemy import SQLAlchemy
 import os
-import json
 
-# Initialize the Flask app and SocketIO
+# Initialize Flask app, SocketIO, and SQLAlchemy
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 socketio = SocketIO(app)
 
-# File path for user data
-USER_DATA_FILE = 'users.json'
+# Database setup
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # SQLite database file
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tracking
+db = SQLAlchemy(app)
 
-# A function to load user data from the JSON file
-def load_users():
-    if os.path.exists(USER_DATA_FILE):
-        with open(USER_DATA_FILE, 'r') as f:
-            return json.load(f)
-    return {}
+# Define the User model (database table)
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
 
-# A function to save user data to the JSON file
-def save_users(users):
-    with open(USER_DATA_FILE, 'w') as f:
-        json.dump(users, f)
-
-# Load users when the app starts
-users = load_users()
+# Create the database tables (if not already created)
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def signup():
     return render_template('SignupPage.html')  # Signup page
 
-@app.route('/signup', methods=['POST'])  # Ensure this is POST
+@app.route('/signup', methods=['POST'])
 def signup_user():
-    data = request.get_json()  # Expecting JSON data
+    data = request.get_json()  # Expecting JSON data from frontend
     username = data.get('username')
     password = data.get('password')
 
-    if username in users:
+    # Check if username already exists in the database
+    existing_user = User.query.filter_by(username=username).first()
+    if existing_user:
         return jsonify({'success': False, 'message': 'Username already exists'})
 
-    users[username] = password
-    save_users(users)  # Save the updated users data
+    # Create new user and add to the database
+    new_user = User(username=username, password=password)
+    db.session.add(new_user)
+    db.session.commit()
     return jsonify({'success': True})
 
 @app.route('/login', methods=['POST'])
@@ -49,8 +50,10 @@ def user_login():
     username = data.get('username')
     password = data.get('password')
 
-    if username in users and users[username] == password:
-        session['username'] = username
+    # Check if user exists and the password matches
+    user = User.query.filter_by(username=username).first()
+    if user and user.password == password:
+        session['username'] = username  # Store username in session
         return jsonify({'success': True})
     else:
         return jsonify({'success': False, 'message': 'Invalid username or password'})
