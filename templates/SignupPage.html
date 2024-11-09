@@ -63,7 +63,7 @@
 
     <input id="usernameInput" type="text" placeholder="Enter your username" required />
     <input id="passwordInput" type="password" placeholder="Enter your password" required />
-    <input id="passwordConfirmInput" type="password" placeholder="Confirm your password" required />
+	<input id="passwordInput" type="password" placeholder="retype your password" required />
     <button type="button" onclick="signUp()">Sign Up</button>
 
     <div id="error-message" class="message" style="display: none;"></div>
@@ -72,24 +72,17 @@
         function signUp() {
             const username = document.getElementById('usernameInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
-            const passwordConfirm = document.getElementById('passwordConfirmInput').value.trim();
 
             const errorMessageDiv = document.getElementById('error-message');
             errorMessageDiv.style.display = 'none';
 
             if (username && password) {
-                if (password !== passwordConfirm) {
-                    errorMessageDiv.textContent = 'Passwords do not match!';
-                    errorMessageDiv.style.display = 'block';
-                    return;
-                }
-
                 fetch('/signup', {  // Send the signup data to the server
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username: username, password: password, password_confirm: passwordConfirm })
+                    body: JSON.stringify({ username: username, password: password })
                 })
                 .then(response => response.json())
                 .then(data => {

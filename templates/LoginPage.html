@@ -61,28 +61,24 @@
 <body>
     <h1>Login</h1>
 
+    <!-- Error Message if invalid login -->
+    <div id="error-message" class="message" style="display: none;"></div>
+    
     <input id="usernameInput" type="text" placeholder="Enter your username" required />
     <input id="passwordInput" type="password" placeholder="Enter your password" required />
-    <button type="button" onclick="login()">Log In</button>
-
-    <div id="error-message" class="message" style="display: none;"></div>
+    <button onclick="enterChat()">Enter Chat</button>
 
     <script>
-        window.onload = function() {
-            if (localStorage.getItem('username')) {
-                window.location.href = '/chat';  // Redirect to chat page if logged in
-            }
-        };
-
-        function login() {
+        function enterChat() {
             const username = document.getElementById('usernameInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
 
+            // Clear any previous error messages
             const errorMessageDiv = document.getElementById('error-message');
             errorMessageDiv.style.display = 'none';
 
             if (username && password) {
-                fetch('/login', {
+                fetch('/login', {  // Send credentials to the server for validation
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -92,16 +88,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        localStorage.setItem('username', username);
-                        window.location.href = '/chat';  // Redirect to chat page on successful login
+                        localStorage.setItem('username', username);  // Store username in local storage
+                        window.location.href = '/chat';  // Redirect to chat page
                     } else {
-                        errorMessageDiv.textContent = data.message;
+                        errorMessageDiv.textContent = 'Invalid username or password';
                         errorMessageDiv.style.display = 'block';
                     }
-                })
-                .catch(error => {
-                    errorMessageDiv.textContent = 'An error occurred while logging in. Please try again.';
-                    errorMessageDiv.style.display = 'block';
                 });
             } else {
                 errorMessageDiv.textContent = 'Please enter both username and password!';
