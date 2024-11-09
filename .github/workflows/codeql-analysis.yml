@@ -1,3 +1,7 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
+
 name: Build and deploy Python app to Azure Web App - projetchatroom
 
 on:
@@ -16,25 +20,19 @@ jobs:
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'  # Ensure compatibility with dependencies
+          python-version: '3.12'
 
-      - name: Create and activate virtual environment
+      - name: Create and start virtual environment
         run: |
           python -m venv venv
           source venv/bin/activate
-
+      
       - name: Install dependencies
         run: |
           source venv/bin/activate
           pip install -r requirements.txt
-          pip install pytest  # Ensure pytest is available for tests
-
-      # Conditionally run tests if the tests/ directory exists
-      - name: Run tests
-        if: ${{ always() && steps.check-tests.outputs.tests-exist == 'true' }}
-        run: |
-          source venv/bin/activate
-          pytest tests/ || echo "No tests found"
+        
+      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
       - name: Zip artifact for deployment
         run: zip -r release.zip ./* -x "*.git*" "*.github*" "venv/*" "*.pytest_cache*" "__pycache__/*" "*.DS_Store*"
@@ -51,7 +49,7 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
+    
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -61,10 +59,16 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
-      - name: Deploy to Azure Web App
+      # Log in to Azure before deployment
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9C9191F3B65D4B5EAF3D3F21F7EA6CC6 }}
+
+      - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: projetchatroom
-          slot-name: Production  # Adjust if using staging slots
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
+          app-name: 'projetchatroom'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9C9191F3B65D4B5EAF3D3F21F7EA6CC6 }}
