@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %} Home {% endblock %}
+
+{% block header %}
+
+<h1>Welcome to Chat404</h1>
+{{ message }}
+
+{% endblock %}
+
+{% block content %}
+
+{% if session.username %}
+
+<h4>You are logged in as '{{ session.username }}' </h4>
+To chat go to <a href="/subjects">Rooms</a>
+<p>or</p>
+<a href="/logout">Log out</a>
+
+<!-- If not logged in-->
+{% else %}
+
+<h2> Log in to chat!</h2>
+
+<form action="/login" method="POST">
+    <fieldset>
+        <legend>Log in</legend>
+        <p>Username:<br>
+            <input type="text" placeholder="Username.." name="username" maxlength="20" autocomplete="off" required></p>
+        <p>Password:<br>
+            <input type="password" placeholder="Password.." name="password" maxlength="30" required></p>
+        <input type="submit" value="Log in"><br>
+        <p>New user?<br>
+            <a href="/register">Register here</a>
+        </p>
+    </fieldset>
+</form>
+
+{% endif %}
+
+{% endblock %}

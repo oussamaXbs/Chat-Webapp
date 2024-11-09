@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %} Create {% endblock %}
+
+{% block header %}
+<h1>Create</h1>
+{% endblock %}
+
+{% block content %}
+
+{% if session.username %}
+
+{% if id > 0 %}
+
+<h2>Room</h2>
+<form action="/create_room" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <fieldset>
+        <legend>New Room</legend>
+        <p>Name:<br>
+            <input type="text" name="room_name" maxlength="30" autocomplete="off" required></p>
+        <input type="hidden" name="subject_id" value="{{ id }}">
+        <input type="submit" value="Create">
+    </fieldset>
+</form>
+
+<!-- If /id == 0 -->
+{% else %}
+
+<h2>Subject</h2>
+<form action="/create_subject" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <fieldset>
+        <legend>New Subject</legend>
+        <p>Name:<br>
+            <input type="text" name="subject_name" autocomplete="off" maxlength="20" required></p>
+        <p>Description:<br>
+            <textarea name="content" rows="3" cols="40" maxlength="80" autocomplete="off" required></textarea></p>
+        <p>Requires Password:<br>
+            <label>
+                <input type="radio" id="require_yes" name="require" value="1" required>
+                Yes
+            </label>
+            <label>
+                <input type="radio" id="require_no" name="require" value="0">
+                No
+            </label></p>
+        <p>Password:<br>
+            <input type="password" name="password" maxlength="40" autocomplete="off "></p>
+        <input type="submit" value="Create">
+    </fieldset>
+</form>
+
+{% endif %}
+
+<!-- If not logged in-->
+{% else %}
+
+<p> Log in to view the rooms</p>
+<br>
+<a href="/">Log in</a>
+<br>
+or
+<br>
+<a href="/register">Register</a>
+
+{% endif %}
+
+{% endblock %}

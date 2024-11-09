@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block header %}
+
+<h1>{% block title %} {{ subject_name }} {% endblock %} </h1>
+<p style="font-size:16px;">'{{ content }}'</p>
+
+
+{% endblock %}
+
+{% block content%}
+
+{% if session.username %}
+
+
+{% if require == 1 and hasRight != True and session.admin != True %}
+
+<div>
+    <h2>This area is restricted by a password</h2>
+    <form action="/subject_login" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <fieldset>
+            <legend>Login to {{ subject_name }}</legend>
+            <input type="hidden" name="id" value="{{ id }}">
+            <p>Password:<br>
+                <input type="password" name="password" required></p>
+            <input type="submit" value="Log in">
+        </fieldset>
+    </form>
+</div>
+
+<!-- Has right to room or room is public -->
+{% else %}
+
+<p>You can create a new room <a href="/create/id={{ id }}">here</a></p>
+
+
+<div class="grid-wrapper">
+
+    {% if rooms is defined and rooms|length > 0 %}
+
+    <h3 style="text-align: center;">Enter a room to chat</h3>
+
+    <ul class="grid-list">
+        {% for room in rooms %}
+        <a href="{{ url_for('room', id=room[0]) }}">
+            <li>
+                <p>
+                    {{ room[1] }}
+                </p>
+            </li>
+            {% endfor %}
+        </a>
+    </ul>
+    {% else %}
+    <p>{{ subject_name }} doesn't have any rooms yet</p>
+    {% endif %}
+</div>
+
+
+{% endif%}
+
+<!-- If not logged in-->
+{% else %}
+
+<p>
+    Log in to view the rooms
+    <br>
+    <a href="/">Log in</a>
+    <br>
+    or
+    <br>
+    <a href="/register">Register</a>
+</p>
+
+{% endif %}
+
+{% endblock %}

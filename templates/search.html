@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div>
+    <h1>{% block title %} Search {% endblock %} </h1>
+</div>
+{% endblock %}
+
+{% block content%}
+
+{% if session.username %}
+<div>
+
+    {% if query is defined %}
+
+    {% if results|length == 1 %}
+    <p> Found {{ results|length }} match for '{{ query }}'</p>
+    <!-- Plural -->
+    {% else %}
+    <p> found {{ results|length }} matches for '{{ query }}'</p>
+    {% endif %}
+
+    {% endif %}
+
+    {% if results is defined %}
+    <div class="chat-wrapper">
+        {% for result in results %}
+
+        {% if result[0] == session.username or session.admin %}
+        <form action="/delete_message" method="POST">
+            <p class="message">
+                <input type="hidden" name="message_id" value=" {{ result[3] }}">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                <input type="hidden" name="query" value=" {{ query }}">
+                <input type="submit" value="Delete">
+                <b>{{result[0]}}
+                    ({{result[1]}}):
+                </b>
+            <div style="text-transform: none;">{{ result[2]}}</div>
+            </p>
+        </form>
+
+        <!-- If message is not users -->
+        {% else %}
+
+        <p class="message"><b>{{result[0]}} ({{result[1]}}): </b>
+        <div style="text-transform: none;">{{ result[2]}}</div>
+        </p>
+
+        {% endif %}
+
+        {% endfor %}
+
+    </div>
+
+    {% endif %}
+
+    <form action="/result" method="GET">
+
+        <div class="textarea-wrapper">
+            <input type="text" placeholder="Search.." name="query" autocomplete="off" maxlength="200" required>
+            <input type="submit" value="Search">
+        </div>
+    </form>
+</div>
+
+<!-- If not logged in-->
+{% else %}
+
+<div>
+    <p> You must be logged in to use the search function</p>
+    <a href="/">Log in</a>
+    <br>
+    or
+    <br>
+    <a href="/register">Register</a>
+</div>
+
+{% endif %}
+
+{% endblock %}

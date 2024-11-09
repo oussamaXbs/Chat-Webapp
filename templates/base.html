@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Ville Manninen">
+    <title>{% block title %}{% endblock %} - Chat404</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='404.ico') }}">
+</head>
+
+<body>
+    <div class="mainTitle">
+        <h1>CHAT404</h1>
+    </div>
+
+    <div class="navbar">
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/subjects">Rooms</a></li>
+                <li><a href="/search">Search</a></li>
+                <li><a href="/register">Register</a></li>
+                {% if session.username %}
+                <li style="float:right;"><a href="/logout">Log out</a></li>
+                <li style="float:right;">{{ session.username }}</li>
+                {% else %}
+                <li><a href="/">Log in</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="pagetitle">
+            {% if session.admin %}
+            <b>Admin session &#128275</b>
+            {% endif %}
+            {% block header %}{% endblock %}
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class=flash>
+                <ul>
+                    {% for message in messages %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% endwith %}
+            <br>
+        </div>
+
+        {% block content %}{%  endblock %}
+
+    </div>
+
+    <div class="endtext">
+        <hr>
+        <br>
+        <p>Github repository of this website can be found <a href="https://github.com/Viltska/python-chat-app">here</a>
+        </p>
+        <br>
+    </div>
+
+</body>
