@@ -16,32 +16,32 @@ jobs:
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'  # Adjust version if necessary
+          python-version: '3.12'  # Ensure compatibility with dependencies
 
-      - name: Create and start virtual environment
+      - name: Create and activate virtual environment
         run: |
           python -m venv venv
           source venv/bin/activate
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          source venv/bin/activate
+          pip install -r requirements.txt
 
-      # Optional: Add step to run tests here (e.g., pytest or Django tests)
+      # Optional: Run tests before deployment
       - name: Run tests
         run: |
           source venv/bin/activate
-          pytest tests/  # Adjust the test command to your needs
+          pytest tests/  # Adjust if necessary
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip ./* -x "*.git*" "*.github*" "venv/*"
+        run: zip -r release.zip ./* -x "*.git*" "*.github*" "venv/*" "*.pytest_cache*" "__pycache__/*" "*.DS_Store*"
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: |
-            release.zip
-            !venv/
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -49,7 +49,7 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -64,5 +64,5 @@ jobs:
         id: deploy-to-webapp
         with:
           app-name: projetchatroom
-          slot-name: Production  # Change if deploying to a different slot (e.g., staging)
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9C9191F3B65D4B5EAF3D3F21F7EA6CC6 }}
+          slot-name: Production  # Adjust if using staging slots
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
