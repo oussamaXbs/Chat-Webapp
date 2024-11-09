@@ -1,15 +1,15 @@
 autopep8==1.5.3
 click==7.1.2
-Flask==2.3.3         # Upgrade to the latest Flask 2.x version
-Flask-SQLAlchemy==2.5.0   # Upgrade to a compatible version of Flask-SQLAlchemy
+Flask==2.3.3
+Flask-SQLAlchemy==2.5.0
 gunicorn==20.1.0
 itsdangerous==2.1.2
-Jinja2==3.1.0
+Jinja2>=3.1.2
 MarkupSafe==2.1.2
 psycopg2==2.9.6
 pycodestyle==2.6.0
 python-dotenv==0.21.0
-SQLAlchemy==2.0.12    # Upgrade to a recent version of SQLAlchemy
+SQLAlchemy==2.0.12
 toml==0.10.1
-waitress==2.1.2   # Choose either gunicorn or waitress; not both
-Werkzeug==2.3.7   # Ensure compatibility with Flask 2.x
+waitress==2.1.2
+Werkzeug>=2.3.7
