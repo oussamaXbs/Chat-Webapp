@@ -28,7 +28,7 @@ loginBtn.addEventListener('click', () => {
 
 function connectWebSocket() {
     // Open a new WebSocket connection
-    socket = new WebSocket('ws://localhost:3000');
+    socket = new WebSocket('chat-web-app-h4ggd6h6hdh8cxec.canadacentral-01.azurewebsites.net');
 
     socket.onopen = () => {
         // Send a "join" event to the server with the username
