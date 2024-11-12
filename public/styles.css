@@ -38,3 +38,12 @@ body {
     border-radius: 5px;
     cursor: pointer;
 }
+/* Basic styles for login screen */
+#login-container, #chat-container {
+    width: 90%;
+    max-width: 500px;
+    margin: 50px auto;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
