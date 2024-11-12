@@ -1,2 +1,3 @@
-bind = "0.0.0.0:5000"  # Listen on all network interfaces
-workers = 4            # Adjust the number of workers as needed
+import os
+bind = f"0.0.0.0:{os.getenv('PORT', '5000')}"
+workers = 4
