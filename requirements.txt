@@ -1,13 +1,9 @@
 Flask~=2.2.2
-Flask-SocketIO==5.3.5      # Specify a compatible version
-Flask-CORS==3.0.10
-SQLAlchemy==1.4.44         # SQLAlchemy version compatible with Flask-SQLAlchemy
-Flask-SQLAlchemy==2.5.1
-Flask-Login==0.6.2
-pandas==1.5.2
-matplotlib==3.7.1
-passlib==1.7.4
-eventlet==0.33.3           # For production WebSocket support
-gunicorn==20.1.0           # Production WSGI server
-psycopg2-binary==2.9.6     # Use for PostgreSQL, replace if using another DB
-python-dotenv==1.0.0       # For environment variable management
+flask-socketio
+flask-cors
+sqlalchemy
+flask-sqlalchemy
+flask_login
+pandas
+matplotlib
+passlib
