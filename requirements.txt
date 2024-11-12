@@ -7,3 +7,8 @@ flask_login
 pandas
 matplotlib
 passlib
+azure-identity
+pyodbc
+fastapi
+uvicorn[standard]
+pydantic
