@@ -65,7 +65,3 @@ def chatting_event(json, methods=["GET", "POST"]):
         room=room_id,
         include_self=False,
     )
-
-
-if __name__ == "__main__":
-    socket.run(app, allow_unsafe_werkzeug=True, debug=True)
