@@ -65,3 +65,5 @@ def chatting_event(json, methods=["GET", "POST"]):
         room=room_id,
         include_self=False,
     )
+if __name__ == "__main__":
+    app.run()
