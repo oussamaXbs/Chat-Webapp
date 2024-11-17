@@ -23,6 +23,12 @@ def join_private_chat(data):
 # Outgoing event handler
 @socket.on("outgoing")
 def chatting_event(json, methods=["GET", "POST"]):
+    """
+    handles saving messages and sending messages to all clients
+    :param json: json
+    :param methods: POST GET
+    :return: None
+    """
     room_id = json["rid"]
     timestamp = json["timestamp"]
     message = json["message"]
