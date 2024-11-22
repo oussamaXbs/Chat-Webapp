@@ -25,14 +25,22 @@
             </div>
             
             <div class="new_chat">
-              <div id="new_chat_overlay"></div>
-              <button id="new_chat_btn"><i class="fa fa-plus"></i> New Chat</button>
-              <form method="POST" action="{{ url_for('views.new_chat') }}" id="new_chat_form">
-                <label for="email"><strong>Email: </strong></label>
-                <input type="email" name="email" placeholder="enter friend's email here...">
-                <input type="submit" value="Submit">
-              </form>
-            </div>
+  <div id="new_chat_overlay"></div>
+  <button id="new_chat_btn"><i class="fa fa-plus"></i> New Chat</button>
+  <form method="POST" action="{{ url_for('views.new_chat') }}" id="new_chat_form">
+    <label for="email"><strong>Email: </strong></label>
+    <input type="email" id="email" name="email" placeholder="enter friend's email here...">
+    <input type="submit" value="Submit" onclick="return validateEmail()">
+  </form>
+  <!-- Add the modal window HTML code here -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Please enter your email address to proceed.</h2>
+      <p id="error-message"></p>
+      <button id="close-modal">Close</button>
+    </div>
+  </div>
+</div>
           </div>
           <div class="inbox_chat">
             {% for i in data %}
@@ -83,7 +91,6 @@
                 </button>
               </form>
             </div>
-
           </div>
         </div>
       </div>
@@ -95,7 +102,6 @@
   <script type="text/javascript">
 
     // THIS FUNCTION SHOULD SCROLL DOWN AUTOMATICALLY
-    //let scrollingElement = (document.scrollingElement || document.body)
     let msgH = document.querySelectorAll(".msg_history > div"), CurrentLen;
     let init = () => {
       CurrentLen = msgH.length;
@@ -113,8 +119,6 @@
       }
     }
     let scrollDown = () => {
-      //scrollingElement.scrollTop = scrollingElement.scrollHeight;
-      //$container.animate({scrollTop: $container[0].scrollHeight }, "slow");
       validatePosition();
       location.href = "#last_message";
       init();
@@ -122,7 +126,6 @@
 
     // SOCKET CODE
     var socket = io.connect('http://' + document.domain + ':' + location.port + '/?rid=' + {{ room_id }} );
-    //scrollDown()
     socket.on('connect', function () {
       socket.emit('join-chat', {
         rid: '{{ room_id }}'
@@ -144,7 +147,6 @@
         message : user_input,
         rid: '{{ room_id }}'
         } )
-    //scrollDown();
     $('div.msg_history').append(`
             <div class="outgoing_msg">
               <div class="sent_msg">
@@ -173,7 +175,6 @@
   </script>
   <script>
     function formatDate(date) {
-      // Get the hours, minutes, and seconds from the Date object.
       const hours = date.getHours();
       let formattedHours;
 
@@ -185,16 +186,10 @@
           formattedHours = hours;
       }
       const minutes = date.getMinutes();
-      //const seconds = date.getSeconds();
-
-      // Get the month and day from the Date object.
       const month = date.getMonth() + 1;
       const day = date.getDate();
 
-      // Create a string with the desired time format.
       const timeFormat = `${formattedHours}:${minutes} ${(hours >= 12) ? 'PM' : 'AM'} | ${month}/${day}`;
-
-      // Return the time format string.
       return timeFormat;
     }
  </script>
@@ -208,7 +203,6 @@
         if (e.target === newChatBtn) {
           newChatForm.style.display = "block";
           newChatoverlay.style.display = 'block';
-
         }
       }
       newChatoverlay.onclick = (e) => {
@@ -218,6 +212,20 @@
         }
       }
     }
+
+    function validateEmail() {
+  const emailInput = document.getElementById("email");
+  if (!emailInput.value.trim()) {
+    document.getElementById("error-message").innerHTML = "Email field cannot be empty. Please enter an email.";
+    document.getElementById("modal").style.display = "block";
+    return false;
+  }
+  return true;
+}
+
+document.getElementById("close-modal").addEventListener("click", function() {
+  document.getElementById("modal").style.display = "none";
+});
   </script>
 </body>
 </html>
