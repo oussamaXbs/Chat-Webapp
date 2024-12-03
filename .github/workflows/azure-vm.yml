@@ -26,7 +26,7 @@ jobs:
       - name: Deploy application on Azure VM
         run: |
           sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
-          pkill -9 "flask run"
+          pkill -15 -f "flask run"
           sleep 2
           cd ~/Chat-Webapp
           pip install --user -r requirements.txt
