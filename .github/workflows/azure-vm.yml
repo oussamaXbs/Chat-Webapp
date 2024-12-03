@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Specify version to avoid future issues
 
     steps:
       - name: Checkout repository
@@ -15,16 +15,24 @@ jobs:
 
       - name: Set up SSH with password authentication
         run: |
-          sudo apt-get install -y sshpass
+          sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: Copy application files to Azure VM
+        env:
+          AZURE_VM_PASSWORD: ${{ secrets.AZURE_VM_PASSWORD }}
+          AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
+          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
         run: |
-          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" scp -o StrictHostKeyChecking=no -r Chat-Webapp/* ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:~/app/
+          sshpass -p "$AZURE_VM_PASSWORD" scp -o StrictHostKeyChecking=no -r * $AZURE_VM_USER@$AZURE_VM_HOST:~/app/
 
       - name: Deploy application on Azure VM
+        env:
+          AZURE_VM_PASSWORD: ${{ secrets.AZURE_VM_PASSWORD }}
+          AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
+          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
         run: |
-          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
-          cd ~/Chat-Webapp
-          pip install -r requirements.txt
+          sshpass -p "$AZURE_VM_PASSWORD" ssh -o StrictHostKeyChecking=no $AZURE_VM_USER@$AZURE_VM_HOST << 'EOF'
+          cd ~/app
+          pip install --user -r requirements.txt
           nohup python server.py > app.log 2>&1 &
           EOF
