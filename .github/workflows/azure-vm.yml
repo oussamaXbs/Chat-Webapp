@@ -26,29 +26,25 @@ jobs:
       - name: Deploy application on Azure VM
         run: |
           sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
-          # Stop any previous Flask server
-          if pgrep -f "flask run" > /dev/null; then
-              echo "Stopping existing Flask server..."
-              pkill -f "flask run" || true
-              sleep 2
-          else
-              echo "No Flask server running."
-          fi
+          # Stop any existing Flask server or process using port 5000
+          fuser -k 5000/tcp || true
+          pkill -f "flask run" || true
+          sleep 2
 
           # Navigate to the application directory and install dependencies
           cd ~/Chat-Webapp
           pip install --user -r requirements.txt
 
-          # Start the Flask application in the foreground
+          # Start the Flask server
           echo "Starting Flask server..."
           nohup python3 server.py > flask.log 2>&1 &
 
-          # Ensure the process started successfully
-          if pgrep -f "flask run" > /dev/null; then
-              echo "Flask server started successfully."
+          # Ensure the Flask server started
+          sleep 5
+          if netstat -tuln | grep 5000; then
+              echo "Flask server started successfully on port 5000."
           else
               echo "Failed to start Flask server."
               exit 1
           fi
           EOF
-
