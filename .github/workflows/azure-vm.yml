@@ -1,32 +1,32 @@
-name: Deploy to Azure VM
+deploy:
+  runs-on: ubuntu-latest
+  needs: build
 
-on:
-  push:
-    branches:
-      - main  # Trigger on pushes to the main branch
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: python-app
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up SSH
+    - name: Set up SSH key
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.AZURE_VM_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H "${{ secrets.AZURE_VM_HOST }}" >> ~/.ssh/known_hosts
 
-    - name: Deploy to Azure VM
+    - name: Copy application files to Azure VM
       run: |
-        ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
-        cd /path/to/your/app
-        git pull origin main
-        # Optional: Run build commands
-        # e.g., npm install, pip install -r requirements.txt
-        # Restart your application
-        # e.g., sudo systemctl restart your-app.service
+        scp -o StrictHostKeyChecking=no -r Chat-Webapp/* ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:~/app/
+
+    - name: Deploy application on Azure VM
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
+        cd ~/app
+        # Ensure dependencies are installed (adjust based on your app's requirements)
+        pip install -r requirements.txt
+        # Start or restart your application (replace with your app's startup command)
+        nohup python server.py > app.log 2>&1 &
         EOF
