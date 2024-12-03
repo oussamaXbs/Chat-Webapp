@@ -5,6 +5,7 @@ from flask_socketio import emit, join_room, leave_room
 app, socket = create_app()
 
 
+
 # COMMUNICATION ARCHITECTURE
 
 # Join-chat event. Emit online message to other users and join the room
