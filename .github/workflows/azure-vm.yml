@@ -41,10 +41,11 @@ jobs:
 
           # Ensure the Flask server started
           sleep 5
-          if netstat -tuln | grep 5000; then
+          if ss -tuln | grep ':5000'; then
               echo "Flask server started successfully on port 5000."
           else
               echo "Failed to start Flask server."
               exit 1
           fi
           EOF
+
