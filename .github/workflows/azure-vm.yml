@@ -10,19 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Install SSH client
       - name: Install SSH client
         run: |
           sudo apt-get update
           sudo apt-get install -y sshpass
 
+      # Step 3: Copy application files to the Azure VM
       - name: Copy application files to Azure VM
         run: |
           sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "mkdir -p ~/Chat-Webapp"
           sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" scp -o StrictHostKeyChecking=no -r * ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:~/Chat-Webapp/
 
+      # Step 4: Deploy the application on the Azure VM
       - name: Deploy application on Azure VM
         run: |
           sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
@@ -35,9 +39,10 @@ jobs:
           cd ~/Chat-Webapp
           pip install --user -r requirements.txt
 
-          # Start the Flask server
-          echo "Starting Flask server..."
-          nohup python3 server.py > flask.log 2>&1 &
+          # Start the Flask server using start.sh
+          echo "Starting Flask server using start.sh..."
+          chmod +x ~/start.sh
+          nohup ~/start.sh > ~/flask.log 2>&1 &
 
           # Ensure the Flask server started
           sleep 5
@@ -48,4 +53,3 @@ jobs:
               exit 1
           fi
           EOF
-
