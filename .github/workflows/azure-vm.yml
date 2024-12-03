@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install SSH client
         run: |
@@ -30,9 +30,12 @@ jobs:
           cd ~/Chat-Webapp
           source venv/bin/activate
           pip install -r requirements.txt
-          ~/start.sh
           EOF
+
+      - name: Enable chat-webapp service
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "systemctl enable chat-webapp"
 
       - name: Start application
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "systemctl start chat-webapp"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE
