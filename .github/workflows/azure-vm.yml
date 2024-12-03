@@ -24,7 +24,7 @@ deploy:
     - name: Deploy application on Azure VM
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
-        cd ~/app
+        cd ~/Chat-Webapp
         # Ensure dependencies are installed (adjust based on your app's requirements)
         pip install -r requirements.txt
         # Start or restart your application (replace with your app's startup command)
