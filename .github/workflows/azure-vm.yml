@@ -11,25 +11,28 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install SSH client
         run: |
           sudo apt-get update
-          sudo apt-get install -y sshpass
+          sudo apt-get install -y openssh-client
 
       - name: Copy application files to Azure VM
         run: |
-          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "mkdir -p ~/Chat-Webapp"
-          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" scp -o StrictHostKeyChecking=no -r * ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:~/Chat-Webapp/
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" * ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:~/Chat-Webapp/
 
       - name: Deploy application on Azure VM
+        env:
+          FLASK_APP: server.py
         run: |
-          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
-          pkill -15 -f "flask run"
-          sleep 2
+          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
           cd ~/Chat-Webapp
-          pip install --user -r requirements.txt
-          cd ..
+          source venv/bin/activate
+          pip install -r requirements.txt
           ~/start.sh
           EOF
+
+      - name: Start application
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "systemctl start chat-webapp"
