@@ -26,22 +26,15 @@ jobs:
       - name: Deploy application on Azure VM
         run: |
           sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
-          # Force terminate any running instances of server.py
-          pkill -f server.py || true  # Ignore error if no process is found
-          
-          # Optional: Wait for a moment to ensure the process is terminated
-          sleep 2
-          
-          # Check for remaining instances of server.py
-          if pgrep -f server.py > /dev/null; then
-              echo "Still running after pkill. Attempting to find and kill by port."
-              # Find PID by port (5000)
-              for pid in $(lsof -t -i:5000); do
-                  echo "Killing process $pid running on port 5000"
-                  kill -9 $pid
-              done
+          # Check if the Flask server is running and kill it
+          if pgrep -f "flask run" > /dev/null; then
+              echo "Stopping existing Flask server..."
+              pkill -f "flask run" || true  # Ignore error if no process is found
+              sleep 2
+          else
+              echo "No Flask server running."
           fi
-          
+
           # Navigate to the application directory and install dependencies
           cd ~/Chat-Webapp
           pip install --user -r requirements.txt
