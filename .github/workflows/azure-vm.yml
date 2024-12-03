@@ -1,34 +1,30 @@
-name: Deploy to Azure
+name: CI/CD for Azure VM Deployment
 
 on:
   push:
     branches:
-      - main  # Trigger on push to the 'main' branch
+      - main
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up SSH key
+      - name: Set up SSH with password authentication
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AZURE_VM_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          sudo apt-get install -y sshpass
 
       - name: Copy application files to Azure VM
         run: |
-          scp -o StrictHostKeyChecking=no -r Chat-Webapp/* ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:~/Chat-Webapp/
+          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" scp -o StrictHostKeyChecking=no -r Chat-Webapp/* ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:~/app/
 
       - name: Deploy application on Azure VM
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
+          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
           cd ~/Chat-Webapp
-          # Ensure dependencies are installed
           pip install -r requirements.txt
-          # Start or restart your application
           nohup python server.py > app.log 2>&1 &
           EOF
