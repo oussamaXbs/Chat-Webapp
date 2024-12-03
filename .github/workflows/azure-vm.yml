@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Specify version to avoid future issues
+    runs-on: ubuntu-22.04  # Explicit version to avoid warnings
 
     steps:
       - name: Checkout repository
@@ -15,6 +15,7 @@ jobs:
 
       - name: Set up SSH with password authentication
         run: |
+          set -x
           sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: Copy application files to Azure VM
@@ -23,6 +24,7 @@ jobs:
           AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
           AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
         run: |
+          set -x
           sshpass -p "$AZURE_VM_PASSWORD" scp -o StrictHostKeyChecking=no -r * $AZURE_VM_USER@$AZURE_VM_HOST:~/app/
 
       - name: Deploy application on Azure VM
@@ -31,6 +33,7 @@ jobs:
           AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
           AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
         run: |
+          set -x
           sshpass -p "$AZURE_VM_PASSWORD" ssh -o StrictHostKeyChecking=no $AZURE_VM_USER@$AZURE_VM_HOST << 'EOF'
           cd ~/app
           pip install --user -r requirements.txt
