@@ -6,36 +6,20 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04  # Explicit version to avoid warnings
+  deploy:
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Set up SSH with password authentication
         run: |
-          set -x
           sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Copy application files to Azure VM
-        env:
-          AZURE_VM_PASSWORD: ${{ secrets.AZURE_VM_PASSWORD }}
-          AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
-          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
+      - name: Pull latest changes on Azure VM
         run: |
-          set -x
-          sshpass -p "$AZURE_VM_PASSWORD" scp -o StrictHostKeyChecking=no -r * $AZURE_VM_USER@$AZURE_VM_HOST:~/app/
-
-      - name: Deploy application on Azure VM
-        env:
-          AZURE_VM_PASSWORD: ${{ secrets.AZURE_VM_PASSWORD }}
-          AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
-          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
-        run: |
-          set -x
-          sshpass -p "$AZURE_VM_PASSWORD" ssh -o StrictHostKeyChecking=no $AZURE_VM_USER@$AZURE_VM_HOST << 'EOF'
-          cd ~/app
+          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} << 'EOF'
+          cd ~/Chat-Webapp
+          git reset --hard
+          git pull origin main
           pip install --user -r requirements.txt
           nohup python server.py > app.log 2>&1 &
           EOF
