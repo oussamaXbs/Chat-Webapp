@@ -90,6 +90,10 @@
                   <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
                 </button>
               </form>
+              <input type="file" id="fileInput" style="display:none" />
+              <button id="uploadBtn" class="btn btn-secondary">
+                  <i class="fa fa-upload"></i> Upload File
+              </button>
             </div>
           </div>
         </div>
@@ -173,6 +177,50 @@
     })
 
   </script>
+  <script>
+  // Handle file upload button click
+  document.getElementById('uploadBtn').addEventListener('click', function() {
+      document.getElementById('fileInput').click();
+  });
+  
+  // Handle file selection and upload
+  document.getElementById('fileInput').addEventListener('change', function(event) {
+      const file = event.target.files[0];  // Get the selected file
+      if (file) {
+          const formData = new FormData();
+          formData.append('file', file);  // Append file to FormData
+  
+          // Use Socket.IO to send the file data to the server
+          const reader = new FileReader();
+          reader.onload = function() {
+              const fileData = reader.result;  // Get the file data as a Base64 encoded string
+  
+              // Emit the file upload event with the file data
+              socket.emit('file-upload', {
+                  sender_username: "{{ user_data['username'] }}",
+                  sender_id: {{ user_data["id"] }},
+                  file_data: fileData,
+                  file_name: file.name,
+                  file_size: file.size,
+                  rid: '{{ room_id }}'
+              });
+  
+              // Append the file name to the chat window (optional)
+              $('div.msg_history').append(`
+                  <div class="outgoing_msg">
+                      <div class="sent_msg">
+                          <p><i class="fa fa-file"></i> ${file.name}</p>
+                          <span class="time_date">${formatDate(new Date())}</span>
+                      </div>
+                  </div>
+              `);
+              scrollDown();  // Scroll down to the latest message
+          };
+  
+          reader.readAsDataURL(file);  // Read the file as a Base64 string
+      }
+  });
+  </script>  
   <script>
     function formatDate(date) {
       const hours = date.getHours();
